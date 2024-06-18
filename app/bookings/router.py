@@ -1,11 +1,12 @@
 from datetime import date
 
-from fastapi import APIRouter, Request, Depends
+from fastapi import APIRouter, Depends
 
 from app.bookings.dao import BookingDAO
 from app.users.models import Users
 from app.users.dependencies import get_current_user
 from app.exceptions import RoomCannotBeBooked
+from app.bookings.schemas import SBookings
 
 
 router = APIRouter(
@@ -15,9 +16,15 @@ router = APIRouter(
 
 
 @router.get("")
-async def get_bookings(user: Users = Depends(get_current_user)):
+async def get_bookings(user: Users = Depends(get_current_user)) -> list[SBookings]:
 
-    return await BookingDAO.find_all(user_id=user.id)
+    return await BookingDAO.find_all_bookings(user.id)
+
+
+@router.delete("/{booking_id}")
+async def delete_booking(booking_id: int, user: Users = Depends(get_current_user)):
+
+    await BookingDAO.delete_(booking_id)
 
 
 @router.post("")
