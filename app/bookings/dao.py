@@ -14,18 +14,11 @@ class BookingDAO(BaseDAO):
     model = Bookings
 
     @classmethod
-    async def delete_(cls,
-                      user_id: int,
-                      room_id: int):
+    async def delete_(cls, booking_id: int):
 
         async with async_session_maker() as session:
 
-            query = delete(Bookings).where(
-                and_(
-                    Bookings.user_id == user_id,
-                    Bookings.room_id == room_id
-                )
-            )
+            query = delete(Bookings).where(Bookings.id == booking_id)
             await session.execute(query)
             await session.commit()
 
@@ -138,3 +131,42 @@ class BookingDAO(BaseDAO):
             else:
 
                 return None
+
+    @classmethod
+    async def find_all_bookings(
+            cls,
+            user_id: int
+    ):
+
+        async with async_session_maker() as session:
+
+            """
+                        WITH user_bookings AS (
+                SELECT * FROM bookings
+                WHERE user_id = 3
+            )
+            
+            SELECT rooms.image_id, rooms.name, rooms.description, rooms.services, user_bookings.* FROM rooms
+            LEFT JOIN user_bookings ON user_bookings.room_id = rooms.id
+            WHERE user_bookings.user_id = 3;
+            """
+
+            user_bookings = select(Bookings).where(Bookings.user_id == user_id).cte("user_bookings")
+
+            query = select(
+                Rooms.image_id,
+                Rooms.name,
+                Rooms.description,
+                Rooms.services,
+                user_bookings.columns
+            ).select_from(Rooms).join(
+                user_bookings,
+                user_bookings.c.room_id == Rooms.id,
+                isouter=True
+            ).where(
+                user_bookings.c.user_id == user_id
+            )
+
+            result = await session.execute(query)
+
+            return result.mappings().all()
