@@ -158,6 +158,8 @@ cython_debug/
 alembic.ini
 migrations
 
+# Frontend
+static
 
 
 # PyCharm

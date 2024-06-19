@@ -10,7 +10,7 @@ router = APIRouter(prefix="/hotels",
 
 
 @router.get("/{location}")
-async def get_hotels(
+async def get_hotels_by_location(
         location: str,
         date_from: date,
         date_to: date
