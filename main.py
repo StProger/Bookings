@@ -15,6 +15,8 @@ from app.hotels.rooms.router import router as router_rooms
 from app.pages.router import router as pages_router
 from app.images.router import router as image_router
 
+from app.config import settings
+
 
 app = FastAPI()
 
@@ -36,7 +38,7 @@ origins = [
 
 @app.on_event("startup")
 async def startup():
-    redis = await aioredis.from_url("redis://localhost:6379", encoding="utf8")
+    redis = await aioredis.from_url(f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}", encoding="utf8")
     FastAPICache.init(RedisBackend(redis), prefix="cache")
 
 app.add_middleware(
