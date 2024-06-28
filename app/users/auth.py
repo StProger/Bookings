@@ -37,7 +37,7 @@ def create_access_token(data: dict) -> str:
 async def authenticate_user(email: EmailStr, password: str) -> None | Users:
 
     user = await UsersDAO.find_one_or_none(email=email)
-    print(user)
+
     if not user or not verify_password(password, user.hashed_password):
         return None
 
