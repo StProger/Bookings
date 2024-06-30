@@ -1,9 +1,6 @@
-from sqladmin import Admin
 from sqladmin.authentication import AuthenticationBackend
 from starlette.requests import Request
-from starlette.responses import RedirectResponse
 
-from app.exceptions import IncorrectEmailOrPasswordException
 from app.users.auth import authenticate_user, create_access_token
 from app.users.dependencies import get_current_user
 from app.config import settings
@@ -20,8 +17,6 @@ class AdminAuth(AuthenticationBackend):
                 {"sub": str(user.id)}
             )
 
-            # Validate username/password credentials
-            # And update session
             request.session.update({"token": access_token})
 
         return True
@@ -43,7 +38,6 @@ class AdminAuth(AuthenticationBackend):
             if not user:
 
                 return False
-        # Check the token in depth
         return True
 
 
