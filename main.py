@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,7 +12,6 @@ from fastapi_cache.backends.redis import RedisBackend
 from app.admin.views import UsersAdmin, BookingsAdmin, RoomsAdmin, HotelsAdmin
 from app.bookings.router import router as router_bookings
 from app.database import engine
-from app.users.models import Users
 from app.users.router import router as router_users
 from app.hotels.router import router as router_hotels
 from app.hotels.rooms.router import router as router_rooms
@@ -22,10 +23,16 @@ from app.config import settings
 
 from app.admin.auth import authentication_backend
 
-from sqladmin import Admin, ModelView
+from sqladmin import Admin
 
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    redis = await aioredis.from_url(f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}", encoding="utf8")
+    FastAPICache.init(RedisBackend(redis), prefix="cache")
+
+
+app = FastAPI(lifespan=lifespan)
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
@@ -51,10 +58,10 @@ origins = [
     "http://localhost:8080",
 ]
 
-@app.on_event("startup")
-async def startup():
-    redis = await aioredis.from_url(f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}", encoding="utf8")
-    FastAPICache.init(RedisBackend(redis), prefix="cache")
+# @app.on_event("startup")
+# async def startup():
+#     redis = await aioredis.from_url(f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}", encoding="utf8")
+#     FastAPICache.init(RedisBackend(redis), prefix="cache")
 
 app.add_middleware(
     CORSMiddleware,
