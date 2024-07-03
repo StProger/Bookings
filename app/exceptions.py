@@ -42,5 +42,17 @@ class UserIsNotPresentException(BookingException):
 
 class RoomCannotBeBooked(BookingException):
 
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    status_code = status.HTTP_409_CONFLICT
     detail = "Не удалось забронировать номер ввиду неизвестной ошибки"
+
+
+class BookingDifferenceDate(BookingException):
+
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "Не удалось забронировать номер: дата заезда больше даты выезда."
+
+
+class BookingManyDays(BookingException):
+
+    status_code = status.HTTP_400_BAD_REQUEST
+    detail = "Не удалось забронировать номер: бронь больше 30 дней."

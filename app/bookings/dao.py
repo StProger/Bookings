@@ -158,7 +158,7 @@ class BookingDAO(BaseDAO):
                 Rooms.name,
                 Rooms.description,
                 Rooms.services,
-                user_bookings.columns
+                user_bookings.c
             ).select_from(Rooms).join(
                 user_bookings,
                 user_bookings.c.room_id == Rooms.id,

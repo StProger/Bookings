@@ -28,8 +28,10 @@ from sqladmin import Admin
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    redis = await aioredis.from_url(f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}", encoding="utf8")
+    redis = await aioredis.from_url(f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}", encoding="utf-8")
     FastAPICache.init(RedisBackend(redis), prefix="cache")
+    yield
+    await redis.close()
 
 
 app = FastAPI(lifespan=lifespan)

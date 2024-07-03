@@ -24,10 +24,11 @@ class SBookings(BaseModel):
     user_id: int
     date_from: date
     date_to: date
+    booking_id: int
     price: int
     total_cost: int
     total_days: int
     name: str
-    description: str
+    description: str | None
     services: list
     image_id: int
