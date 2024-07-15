@@ -1,10 +1,8 @@
-from fastapi import HTTPException
-from passlib.context import CryptContext
-
-from jose import jwt
-
 from datetime import datetime, timedelta
 
+from fastapi import HTTPException
+from jose import jwt
+from passlib.context import CryptContext
 from pydantic import EmailStr
 
 from app.config import settings

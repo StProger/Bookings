@@ -3,19 +3,16 @@ import json
 from datetime import datetime
 
 import pytest
+from fastapi.testclient import TestClient
+from httpx import ASGITransport, AsyncClient
 from sqlalchemy import insert
 
-from fastapi.testclient import TestClient
-
-from httpx import AsyncClient, ASGITransport
-
-from app.database import Base, async_session_maker, engine
-from app.config import settings
-
 from app.bookings.models import Bookings
-from app.users.models import Users
+from app.config import settings
+from app.database import Base, async_session_maker, engine
 from app.hotels.models import Hotels
 from app.hotels.rooms.models import Rooms
+from app.users.models import Users
 from main import app as fastapi_app
 
 

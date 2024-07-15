@@ -1,8 +1,7 @@
-import pytest
-from httpx import AsyncClient
-
 from datetime import datetime
 
+import pytest
+from httpx import AsyncClient
 
 
 @pytest.mark.parametrize("room_id, date_from, date_to, booked_rooms, status_code", [

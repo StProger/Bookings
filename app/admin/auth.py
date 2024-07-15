@@ -1,9 +1,9 @@
 from sqladmin.authentication import AuthenticationBackend
 from starlette.requests import Request
 
+from app.config import settings
 from app.users.auth import authenticate_user, create_access_token
 from app.users.dependencies import get_current_user
-from app.config import settings
 
 
 class AdminAuth(AuthenticationBackend):

@@ -1,12 +1,12 @@
 from datetime import datetime
 
-from jose import jwt, JWTError
-
-from fastapi import Request, HTTPException, status, Depends
+from fastapi import Depends, HTTPException, Request, status
+from jose import JWTError, jwt
 
 from app.config import settings
-from app.exceptions import TokenExpiredException, TokenAbsentException, IncorrectTokenFormatException, \
-    UserIsNotPresentException
+from app.exceptions import (IncorrectTokenFormatException,
+                            TokenAbsentException, TokenExpiredException,
+                            UserIsNotPresentException)
 from app.users.dao import UsersDAO
 
 

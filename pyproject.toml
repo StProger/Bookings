@@ -1,0 +1,10 @@
+[tool.black]
+line-length = 88
+target-version = ['py312']
+
+[tool.autoflake]
+check_diff = true
+imports = ["sqlalchemy", "fastapi", "app"]
+
+[tool.pyright]
+include = ["app"]
