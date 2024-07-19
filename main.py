@@ -15,6 +15,7 @@ from app.config import settings
 from app.database import engine
 from app.hotels.rooms.router import router as router_rooms
 from app.hotels.router import router as router_hotels
+from app.logger import logger
 from app.images.router import router as image_router
 from app.pages.router import router as pages_router
 from app.users.router import router as router_users
@@ -58,6 +59,23 @@ origins = [
 # async def startup():
 #     redis = await aioredis.from_url(f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}", encoding="utf8")
 #     FastAPICache.init(RedisBackend(redis), prefix="cache")
+
+import time
+
+from fastapi import FastAPI, Request
+
+app = FastAPI()
+
+
+@app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - start_time
+    logger.info("Request handling time", extra={
+        "process_time": round(process_time, 4)
+    })
+    return response
 
 app.add_middleware(
     CORSMiddleware,
