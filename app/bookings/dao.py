@@ -2,11 +2,13 @@ from datetime import date
 
 from sqlalchemy import and_, delete, func, insert, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.bookings.models import Bookings
 from app.dao.base import BaseDAO
 from app.database import async_session_maker
 from app.hotels.rooms.models import Rooms
+from app.logger import logger
 
 import datetime
 
@@ -85,65 +87,78 @@ class BookingDAO(BaseDAO):
         GROUP BY rooms.quantity;
 
         """
-        async with async_session_maker() as session:
-            booking_rooms = (
-                select(Bookings)
-                .where(
-                    and_(
-                        Bookings.room_id == room_id,
-                        or_(
-                            and_(
-                                Bookings.date_from >= date_from,
-                                Bookings.date_from <= date_to,
+        try:
+            async with async_session_maker() as session:
+                booking_rooms = (
+                    select(Bookings)
+                    .where(
+                        and_(
+                            Bookings.room_id == room_id,
+                            or_(
+                                and_(
+                                    Bookings.date_from >= date_from,
+                                    Bookings.date_from <= date_to,
+                                ),
+                                and_(
+                                    Bookings.date_from <= date_from,
+                                    Bookings.date_to > date_to,
+                                ),
                             ),
-                            and_(
-                                Bookings.date_from <= date_from,
-                                Bookings.date_to > date_to,
-                            ),
-                        ),
+                        )
                     )
+                    .cte("booked_rooms")
                 )
-                .cte("booked_rooms")
-            )
 
-            left_rooms = (
-                select(
-                    (Rooms.quantity - func.count(booking_rooms.c.room_id)).label(
-                        "left_rooms"
+                left_rooms = (
+                    select(
+                        (Rooms.quantity - func.count(booking_rooms.c.room_id)).label(
+                            "left_rooms"
+                        )
                     )
+                    .select_from(Rooms)
+                    .join(booking_rooms, booking_rooms.c.room_id == Rooms.id, isouter=True)
+                    .where(Rooms.id == room_id)
+                    .group_by(Rooms.quantity)
                 )
-                .select_from(Rooms)
-                .join(booking_rooms, booking_rooms.c.room_id == Rooms.id, isouter=True)
-                .where(Rooms.id == room_id)
-                .group_by(Rooms.quantity)
-            )
 
-            result = await session.execute(left_rooms)
-            rooms_left: int = result.scalar()
+                result = await session.execute(left_rooms)
+                rooms_left: int = result.scalar()
 
-            if rooms_left > 0:
-                get_price = select(Rooms.price).filter_by(id=room_id)
-                price = await session.execute(get_price)
-                price = price.scalar()
-                add_booking = (
-                    insert(Bookings)
-                    .values(
-                        room_id=room_id,
-                        user_id=user_id,
-                        date_from=date_from,
-                        date_to=date_to,
-                        price=price,
+                if rooms_left > 0:
+                    get_price = select(Rooms.price).filter_by(id=room_id)
+                    price = await session.execute(get_price)
+                    price = price.scalar()
+                    add_booking = (
+                        insert(Bookings)
+                        .values(
+                            room_id=room_id,
+                            user_id=user_id,
+                            date_from=date_from,
+                            date_to=date_to,
+                            price=price,
+                        )
+                        .returning(Bookings)
                     )
-                    .returning(Bookings)
-                )
-                new_booking = await session.execute(add_booking)
-                await session.commit()
-                return new_booking.scalar()
+                    new_booking = await session.execute(add_booking)
+                    await session.commit()
+                    return new_booking.scalar()
 
+                else:
+
+                    return None
+        except (SQLAlchemyError, Exception) as ex:
+            if isinstance(ex, SQLAlchemyError):
+                msg = "Database Exc"
             else:
-
-                return None
-
+                msg = "Unknown Error"
+            msg += ": Can not add booking"
+            extra = {
+                "user_id": user_id,
+                "room_id": room_id,
+                "date_from": date_from,
+                "date_to": date_to
+            }
+            logger.error(msg, extra=extra, exc_info=True)
     @classmethod
     async def find_all_bookings(cls, user_id: int):
 

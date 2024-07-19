@@ -1,12 +1,13 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from redis import asyncio as aioredis
 from sqladmin import Admin
+import sentry_sdk, time
 
 from app.admin.auth import authentication_backend
 from app.admin.views import BookingsAdmin, HotelsAdmin, RoomsAdmin, UsersAdmin
@@ -21,6 +22,18 @@ from app.pages.router import router as pages_router
 from app.users.router import router as router_users
 
 
+sentry_sdk.init(
+    dsn="https://3d8af16c42f84256da25f5f6c2a3aeb7@o4507630493040640.ingest.de.sentry.io/4507630497103952",
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for performance monitoring.
+    traces_sample_rate=1.0,
+    # Set profiles_sample_rate to 1.0 to profile 100%
+    # of sampled transactions.
+    # We recommend adjusting this value in production.
+    profiles_sample_rate=1.0,
+)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     redis = await aioredis.from_url(f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}", encoding="utf-8")
@@ -31,7 +44,6 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 app.include_router(router_users)
 app.include_router(router_bookings)
@@ -40,6 +52,7 @@ app.include_router(router_rooms)
 app.include_router(pages_router)
 app.include_router(image_router)
 
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 admin = Admin(app, engine, authentication_backend=authentication_backend)
 
@@ -60,11 +73,6 @@ origins = [
 #     redis = await aioredis.from_url(f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}", encoding="utf8")
 #     FastAPICache.init(RedisBackend(redis), prefix="cache")
 
-import time
-
-from fastapi import FastAPI, Request
-
-app = FastAPI()
 
 
 @app.middleware("http")
@@ -76,6 +84,7 @@ async def add_process_time_header(request: Request, call_next):
         "process_time": round(process_time, 4)
     })
     return response
+
 
 app.add_middleware(
     CORSMiddleware,
