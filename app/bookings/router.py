@@ -1,6 +1,7 @@
 from datetime import date
 
 from fastapi import APIRouter, Depends
+from fastapi_versioning import version
 from pydantic import parse_obj_as
 
 from app.bookings.dao import BookingDAO
@@ -18,18 +19,21 @@ router = APIRouter(
 
 
 @router.get("")
+@version(1)
 async def get_bookings(user: Users = Depends(get_current_user)):
 
     return await BookingDAO.find_all_bookings(user.id)
 
 
 @router.delete("/{booking_id}")
+@version(1)
 async def delete_booking(booking_id: int, user: Users = Depends(get_current_user)):
 
     await BookingDAO.delete_(booking_id)
 
 
 @router.post("")
+@version(1)
 async def add_booking(
         room_id: int,
         date_from: date,
