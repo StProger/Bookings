@@ -11,7 +11,7 @@ from app.hotels.rooms.models import Rooms
 
 class HotelDAO(BaseDAO):
 
-    model =  Hotels
+    model = Hotels
 
     @classmethod
     async def get_hotels_by_location(

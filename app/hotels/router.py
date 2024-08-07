@@ -8,6 +8,7 @@ from app.exceptions import BookingDifferenceDate, BookingManyDays
 from app.hotels.dao import HotelDAO
 from app.hotels.schemas import SHotel, SHotels
 
+
 router = APIRouter(prefix="/hotels",
                    tags=["Отели && Комнаты"])
 
