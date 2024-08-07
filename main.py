@@ -25,7 +25,6 @@ from app.images.router import router as image_router
 from app.pages.router import router as pages_router
 from app.users.router import router as router_users
 
-
 sentry_sdk.init(
     dsn="https://3d8af16c42f84256da25f5f6c2a3aeb7@o4507630493040640.ingest.de.sentry.io/4507630497103952",
     traces_sample_rate=1.0,
@@ -42,7 +41,6 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-
 
 app.include_router(router_users)
 app.include_router(router_bookings)
@@ -67,13 +65,10 @@ app.add_middleware(
 )
 
 app = VersionedFastAPI(app,
-    version_format='{major}',
-    prefix_format='/v{major}',
-    description='Greet users with a nice message',
-    # middleware=[
-    #     Middleware(SessionMiddleware, secret_key='mysecretkey')
-    # ]
-)
+                       version_format='{major}',
+                       prefix_format='/v{major}',
+                       description='Greet users with a nice message',
+                       )
 
 instrumentator = Instrumentator(
     should_group_status_codes=False,

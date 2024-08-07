@@ -6,6 +6,10 @@ services:
     container_name: booking_db
     env_file:
       - .env-non-dev
+    environment:
+      POSTGRES_DB: booking_app
+      POSTGRES_USER: postgres
+      POSTGRESS_PASSWORD: postgres
 
     ports:
       - 5432:5432

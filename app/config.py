@@ -14,12 +14,6 @@ class Settings(BaseSettings):
     DB_PASSWORD: str
     DB_NAME: str
 
-    TEST_DB_HOST: str
-    TEST_DB_PORT: int
-    TEST_DB_USER: str
-    TEST_DB_PASSWORD: str
-    TEST_DB_NAME: str
-
     SECRET_KEY: str
     ALGORITHM: str
 
@@ -31,7 +25,7 @@ class Settings(BaseSettings):
     REDIS_HOST: str
     REDIS_PORT: str
 
-    model_config = SettingsConfigDict(env_file='./.env')
+    model_config = SettingsConfigDict(env_file='../.env-non-dev')
 
     @property
     def db_url(self):
