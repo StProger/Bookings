@@ -155,12 +155,7 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-# Alembic
-alembic.ini
-migrations
 
-# Frontend
-static
 
 
 # PyCharm
